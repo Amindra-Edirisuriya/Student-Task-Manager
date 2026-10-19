@@ -1,3 +1,4 @@
+
 import 'dotenv/config'
 import express from 'express'
 import type { NextFunction, Request, Response } from 'express'
@@ -5,6 +6,7 @@ import cors from 'cors'
 import mongoose from 'mongoose'
 import tasks from './routes/tasks'
 import auth from './routes/auth'
+import authenticate from './middleware/authenticate'
 
 const app = express()
 const PORT = Number(process.env.PORT) || 5000
@@ -19,7 +21,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.use('/api/auth', auth)
-app.use('/api/tasks', tasks)
+app.use('/api/tasks', authenticate, tasks)
 
 // Express 5 forwards errors from async handlers here automatically.
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

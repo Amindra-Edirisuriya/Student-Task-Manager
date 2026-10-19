@@ -1,3 +1,4 @@
+
 import { Schema, model } from 'mongoose'
 
 const taskSchema = new Schema(
@@ -7,8 +8,14 @@ const taskSchema = new Schema(
     dueDate: { type: Date, default: null },
     priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
     status: { type: String, enum: ['todo', 'in-progress', 'done'], default: 'todo' },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
   },
-  { timestamps: true }, // adds createdAt and updatedAt
+  { timestamps: true },
 )
 
 export default model('Task', taskSchema)
