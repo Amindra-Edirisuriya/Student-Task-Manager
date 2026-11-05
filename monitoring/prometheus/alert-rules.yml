@@ -44,7 +44,7 @@ groups:
       # MongoDB database connection failure
       - alert: DatabaseDown
         expr: mongodb_up == 0
-        for: 15s
+        for: 2s
         labels:
           severity: critical
           service: student-task-manager
@@ -55,7 +55,7 @@ groups:
       # MongoDB exporter itself is unavailable
       - alert: DatabaseExporterDown
         expr: up{job="mongodb"} == 0
-        for: 15s
+        for: 2s
         labels:
           severity: critical
           service: student-task-manager

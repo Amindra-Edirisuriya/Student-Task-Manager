@@ -85,7 +85,6 @@ services:
 
     networks:
       - default
-      - incident-integration
 
   node-exporter:
 
@@ -128,6 +127,3 @@ volumes:
   prometheus_data:
   alertmanager_data:
 
-networks:
-  incident-integration:
-    external: true
