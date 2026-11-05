@@ -1,8 +1,10 @@
 services:
   mongodb:
-    image: mongo:7.0
+    image: mongo:8.3
     container_name: student-task-mongodb
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     healthcheck:
@@ -18,26 +20,16 @@ services:
     container_name: student-task-backend
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5001:5001"
+      - "5000:5000"
     environment:
-      PORT: 5001
+      PORT: 5000
       MONGODB_URI: mongodb://mongodb:27017/student-task-manager
       CLIENT_ORIGIN: http://localhost:5173
-      JWT_SECRET: ${JWT_SECRET:-local-demo-secret-change-before-use}
+      JWT_SECRET: change-me-to-a-long-random-string
       JWT_EXPIRES_IN: 7d
-      DEMO_MODE: ${DEMO_MODE:-false}
     depends_on:
       mongodb:
         condition: service_healthy
-    healthcheck:
-      test:
-        - CMD
-        - bun
-        - -e
-        - "fetch('http://127.0.0.1:5001/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   frontend:
     build:
@@ -46,84 +38,9 @@ services:
     container_name: student-task-frontend
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5173:80"
-    depends_on:
-      backend:
-        condition: service_healthy
-
-  prometheus:
-    image: prom/prometheus:v3.5.0
-    restart: unless-stopped
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-      - --storage.tsdb.retention.time=15d
-      - --web.enable-lifecycle
-    ports:
-      - "127.0.0.1:9090:9090"
-    volumes:
-      - ./monitoring/prometheus:/etc/prometheus:ro
-      - prometheus_data:/prometheus
+      - "5173:80"
     depends_on:
       - backend
-      - node-exporter
-      - alertmanager
-
-  alertmanager:
-    image: prom/alertmanager:v0.28.1
-    restart: unless-stopped
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/alertmanager
-    ports:
-      - "127.0.0.1:9093:9093"
-    volumes:
-      - ./monitoring/alertmanager:/etc/alertmanager:ro
-      - alertmanager_data:/alertmanager
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-    networks:
-      - default
-
-  node-exporter:
-
-    image: quay.io/prometheus/node-exporter:v1.9.1
-    container_name: student-task-node-exporter
-    restart: unless-stopped
-
-    ports:
-     - "127.0.0.1:9100:9100"
-
-    command:
-      - '--path.procfs=/host/proc' 
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
-      - '--web.listen-address=:9100'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-
-  mongodb-exporter:
-
-    image: percona/mongodb_exporter:0.47
-    container_name: mongodb-exporter
-    restart: unless-stopped
-
-    environment:
-      MONGODB_URI: mongodb://mongodb:27017
-
-    ports:
-      - "9216:9216"
-
-    depends_on:
-      - mongodb
 
 volumes:
   mongodb_data:
-  prometheus_data:
-  alertmanager_data:
-
